@@ -1,4 +1,4 @@
-<?php
+<?php if ( ! defined( 'ABSPATH' ) ) exit;
 	echo '
 		<!-- ' . JUIZ_SPS_PLUGIN_NAME . ' styles -->
 		<style rel="stylesheet">

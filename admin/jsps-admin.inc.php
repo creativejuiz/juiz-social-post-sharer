@@ -1,4 +1,4 @@
-<?php
+<?php if ( ! defined( 'ABSPATH' ) ) exit;
 
 // activation hook
 register_activation_hook( JUIZ_SPS_FILE, 'juiz_sps_activation' );

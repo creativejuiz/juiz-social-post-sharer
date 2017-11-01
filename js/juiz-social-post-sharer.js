@@ -12,17 +12,15 @@ Author: Geoffrey Crofte
 	jQuery.fn.juiz_get_counters = function(){
 		return this.each(function(){
 			
-			var plugin_url 		= $(this).find('.juiz_sps_info_plugin_url').val(),
-				url 			= $(this).find('.juiz_sps_info_permalink').val(),
-
-				$twitter 	= $(this).find('.juiz_sps_link_twitter'),
-				$linkedin 	= $(this).find('.juiz_sps_link_linkedin'),
-				$delicious 	= $(this).find('.juiz_sps_link_delicious'),
-				$facebook 	= $(this).find('.juiz_sps_link_facebook'),
-				$pinterest 	= $(this).find('.juiz_sps_link_pinterest'),
-				$google 	= $(this).find('.juiz_sps_link_google'),
-				$stumble 	= $(this).find('.juiz_sps_link_stumbleupon'),
-				item_class	= '';
+			var nonce       = $(this).find('.juiz_sps_nonce').val(),
+				url         = $(this).find('.juiz_sps_info_permalink').val(),
+				$twitter    = $(this).find('.juiz_sps_link_twitter'),
+				$linkedin   = $(this).find('.juiz_sps_link_linkedin'),
+				$delicious  = $(this).find('.juiz_sps_link_delicious'),
+				$facebook   = $(this).find('.juiz_sps_link_facebook'),
+				$pinterest  = $(this).find('.juiz_sps_link_pinterest'),
+				$stumble    = $(this).find('.juiz_sps_link_stumbleupon'),
+				item_class  = '';
 				
 			if ( $(this).hasClass('counters_total') ) {
 				item_class = ' juiz_hidden_counter';
@@ -38,8 +36,7 @@ Author: Geoffrey Crofte
 			// return : ({"count": 0, "url": "http://stylehatch.co"})
 			var facebook_url	= "//graph.facebook.com/?id=" + url;
 			// return : {"data": [{"like_count": 6,"total_count": 25,"share_count": 9,"click_count": 0,"comment_count": 10}]}
-			var google_url		= plugin_url+"js/get-noapi-counts.php?nw=google&url=" + url;
-			var stumble_url		= plugin_url+"js/get-noapi-counts.php?nw=stumble&url=" + url;
+			var stumble_url		= ajaxurl + "?action=get_network_counters&_wpnonce=" + nonce + "&nw=stumble&url=" + url;
 
 
 			if ( $twitter.length ) {
@@ -60,17 +57,10 @@ Author: Geoffrey Crofte
 						$pinterest.prepend('<span class="juiz_sps_counter'+item_class+'">' + data.count + '</span>');
 					});
 			}
-			if ( $google.length ) {
-				$.getJSON(google_url)
-					.done(function(data){
-						var count = data.count;
-						$google.prepend('<span class="juiz_sps_counter'+item_class+'">' + count.replace('\u00a0', '') + '</span>');
-					})
-			}
 			if ( $stumble.length ) {
 				$.getJSON(stumble_url)
 					.done(function(data){
-						$stumble.prepend('<span class="juiz_sps_counter'+item_class+'">' + data.count + '</span>');
+						$stumble.prepend('<span class="juiz_sps_counter'+item_class+'">' + data.data + '</span>');
 					})
 			}
 			if ( $facebook.length ) {

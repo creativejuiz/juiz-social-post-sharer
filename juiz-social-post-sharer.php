@@ -1,10 +1,10 @@
-<?php
+<?php if ( ! defined( 'ABSPATH' ) ) exit;
 /*
 Plugin Name: Juiz Social Post Sharer
 Plugin URI: http://wordpress.org/extend/plugins/juiz-social-post-sharer/
 Description: Add buttons after (or before, or both) your posts to allow visitors share your content (includes no JavaScript mode). You can also use <code>juiz_sps($array)</code> template function or <code>[juiz_sps]</code> shortcode. For more informations see the setting page located in <strong>Settings</strong> submenu.
 Author: Geoffrey Crofte
-Version: 1.4.7
+Version: 1.4.8
 Author URI: http://geoffrey.crofte.fr
 License: GPLv2 or later
 Text Domain: juiz-social-post-sharer
@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
 define( 'JUIZ_SPS_PLUGIN_NAME',	 'Juiz Social Post Sharer' );
-define( 'JUIZ_SPS_VERSION',		 '1.4.7' );
+define( 'JUIZ_SPS_VERSION',		 '1.4.8' );
 define( 'JUIZ_SPS_FILE',		 __FILE__ );
 define( 'JUIZ_SPS_DIRNAME',		 basename( dirname( __FILE__ ) ) );
 define( 'JUIZ_SPS_PLUGIN_URL',	 plugin_dir_url( __FILE__ ));
@@ -386,7 +386,7 @@ if ( ! is_admin() ) {
 				$general_counters = ( isset( $juiz_sps_options['juiz_sps_counter'] ) && $juiz_sps_options['juiz_sps_counter'] == 1 ) ? 1 : 0;
 
 				// no data-* attribute if user markup is not HTML5 :/
-				$hidden_info = '<input type="hidden" class="juiz_sps_info_plugin_url" value="' . JUIZ_SPS_PLUGIN_URL . '" /><input type="hidden" class="juiz_sps_info_permalink" value="' . $url . '" />';
+				$hidden_info = '<input type="hidden" class="juiz_sps_nonce" value="' . wp_create_nonce('get_network_counters') . '" /><input type="hidden" class="juiz_sps_info_permalink" value="' . $url . '" />';
 
 				$juiz_sps_content .= $after_last_i;
 
@@ -514,3 +514,39 @@ if ( ! is_admin() ) {
 	}
 
 } // end of if not admin
+
+function jsps_get_network_counters() {
+	if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'get_network_counters' ) || ! isset( $_GET['nw'] ) || ! isset( $_GET['url'] ) ) {
+		wp_send_json_error( 'Something’s wrong with the request. Sorry.' );
+		exit;
+	}
+	
+	$data = '';
+	$remote_args = array(
+		'timeout'     => 5,
+		'redirection' => 10,
+		'user-agent'  => 'WordPress; JSPS ' . home_url(),
+		'sslverify'   => false,
+	);
+
+	// Stumble case.
+	if ( 'stumble' === $_GET['nw'] ) {
+		$data = wp_remote_get( esc_url( 'http://www.stumbleupon.com/services/1.01/badge.getinfo?url=' . $_GET['url'] ), $remote_args );
+		if ( is_array( $data ) ) {
+			$body = $data['body'];
+			$result = json_decode( $body );
+
+			if ( isset( $result->result->views ) ) {
+				$data = $result->result->views;
+			}
+		}
+
+		wp_send_json_success( $data );
+		exit;
+	} else {
+		wp_send_json_error( 'Not a stumble Request' );
+		exit;
+	}
+}
+add_action( 'wp_ajax_nopriv_get_network_counters', 'jsps_get_network_counters' );
+add_action( 'wp_ajax_get_network_counters', 'jsps_get_network_counters' );
